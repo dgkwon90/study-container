@@ -6,10 +6,8 @@ db.createUser(
   {
     user:  "$MONGO_USERNAME",
     pwd: "$MONGO_PASSWORD",
-    roles: [{"role": "userAdminAnyDatabase", "db": "admin"}]
+    roles: [{"role": "dbOwner", "db": "$MONGO_INITDB_DATABASE"}]
   }
 );
-
-db.grantRolesToUser("$MONGO_USERNAME", [{ role: 'root', db: 'admin' }])
 
 EOF
