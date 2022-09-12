@@ -32,3 +32,18 @@ services:
       - ME_CONFIG_MONGODB_ADMINPASSWORD=test001
     depends_on:
       - mongo-server
+
+  rabbitmq-server:
+    container_name: rabbitmq-server
+    ports:
+      - 5672:5672
+      - 15672:15672
+    image: rabbitmq:3-management-alpine
+    restart: always
+    environment: 
+      - RABBITMQ_DEFAULT_USER=dgkwon
+      - RABBITMQ_DEFAULT_PASS=test001
+    volumes:
+      - ./rabbitmq-server/etc/:/etc/rabbitmq/
+      - ./rabbitmq-server/data/:/var/lib/rabbitmq/
+      - ./rabbitmq-server/logs/:/var/log/rabbitmq/
