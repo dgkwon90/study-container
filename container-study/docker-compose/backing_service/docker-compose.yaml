@@ -51,7 +51,7 @@ services:
   redis-server:
     container_name: redis-server
     ports:
-      - 7480:7480
+      - 6379:6379
     image: redis:7.0.0-alpine
     restart: always
     labels:
@@ -59,7 +59,7 @@ services:
       - "mode=standalone"
     volumes:
       - ./redis/data:/data:rw
-    command: redis-server --port 7480 --requirepass "test001"
+    command: redis-server --port 6379 --requirepass "test001"
 
   redis-insight:
     container_name: redis-insight
@@ -68,3 +68,5 @@ services:
     image: redislabs/redisinsight:1.12.1
     volumes:
       - ./redis-insight/data:/db
+    depends_on:
+      - redis-server
