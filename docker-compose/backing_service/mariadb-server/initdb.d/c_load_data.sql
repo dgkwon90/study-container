@@ -1,0 +1,1 @@
+LOAD DATA INFILE './users.csv' INTO TABLE users FIELDS TERMINATED BY ',' (`id`, `email`, `name`);

@@ -1,0 +1,121 @@
+version: '3.9'
+
+services:
+  mariadb-server:
+    container_name: mariadb-server
+    ports: 
+      - 3306:3306
+    image: mariadb:10.6.5
+    restart: always
+    env_file: ./mariadb-server/.env
+    environment: 
+      - TZ=Asia/Seoul
+    volumes:
+      - mariadb-data:/var/lib/mysql # mount 사용함
+      - ./mariadb-server/initdb.d/users.csv:/var/lib/mysql/users.csv:ro
+      - ./mariadb-server/conf.d:/etc/mysql/conf.d:rw
+      - ./mariadb-server/initdb.d:/docker-entrypoint-initdb.d:rw
+    user: mysql # var/lib/mysql/users.csv 파일을 읽기 위해 필요
+    networks:
+      - backing-service
+
+  mariadb-server-adminer:
+    container_name: mariadb-server-adminer
+    ports:
+      - 8080:8080
+    image: adminer:4.8.1
+    restart: always
+    environment: 
+      - TZ=Asia/Seoul
+    depends_on:
+      - mariadb-server
+    networks:
+      - backing-service
+
+  mongo-server:
+    container_name: mongo-server
+    ports:
+      - 27017:27017
+    image: mongo:6.0.4
+    restart: always
+    env_file: ./mongo-server/.env
+    environment:
+      - TZ=Asia/Seoul
+    volumes:
+      - mongodb-data:/datadb:rw # mount 사용 
+      - ./mongo-server/initdb.d:/docker-entrypoint-initdb.d:rw
+    networks:
+      - backing-service
+
+  mongo-server-express:
+    container_name: mongo-server-express
+    ports:
+      - 8081:8081
+    image: mongo-express
+    restart: always
+    env_file: ./mongo-server/express.env
+    environment:
+      - TZ=Asia/Seoul
+    depends_on:
+      - mongo-server
+    networks:
+      - backing-service
+
+  rabbitmq-server:
+    container_name: rabbitmq-server
+    ports:
+      - 5672:5672
+      - 15672:15672
+    image: rabbitmq:3-management-alpine
+    restart: always
+    env_file: ./rabbitmq-server/.env
+    environment:
+      - TZ=Asia/Seoul
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/:rw # mount 사용 
+      - rabbitmq-data:/var/log/rabbitmq/:rw # mount 사용 같이 사용해되는지 여부는 확인 필요
+      - ./rabbitmq-server/etc/:/etc/rabbitmq/:rw
+    networks:
+      - backing-service
+
+  redis-server:
+    container_name: redis-server
+    ports:
+      - 6379:6379
+    image: redis:7.0.0-alpine
+    restart: always
+    labels:
+      - "name=redis"
+      - "mode=standalone"
+    volumes:
+      - redis-data:/data:rw # mount 사용
+      - ./redis-server/etc/redis.conf:/etc/redis.conf:rw
+    command: redis-server /etc/redis.conf
+    networks:
+      - backing-service
+
+  redis-insight:
+    container_name: redis-insight
+    ports:
+      - '8001:8001'
+    image: redislabs/redisinsight:1.13.1
+    restart: always
+    environment:
+      - TZ=Asia/Seoul
+    volumes:
+      - redis-insight-data:/db:rw # mount 사용 
+    depends_on:
+      - redis-server
+    networks:
+      - backing-service
+
+volumes:
+  mariadb-data:  
+  mongodb-data:
+  rabbitmq-data:
+  redis-data:
+  redis-insight-data:
+
+networks:
+  backing-service:
+    name: backing-service
